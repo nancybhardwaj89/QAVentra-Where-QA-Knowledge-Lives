@@ -1,0 +1,45 @@
+﻿services:
+  qdrant:
+    image: qdrant/qdrant
+    container_name: qaventra-qdrant
+    restart: unless-stopped
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - ./docker/qdrant_storage:/qdrant/storage
+
+  app:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: qaventra-app
+    restart: unless-stopped
+    depends_on:
+      - qdrant
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      - QDRANT_URL=http://qdrant:6333
+    volumes:
+      - ./data_sources:/app/data_sources
+      - ./ingestion:/app/ingestion
+
+  scheduler:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: qaventra-scheduler
+    restart: unless-stopped
+    depends_on:
+      - qdrant
+    env_file:
+      - .env
+    environment:
+      - QDRANT_URL=http://qdrant:6333
+    command: ["python", "ingestion/scheduler.py"]
+    volumes:
+      - ./data_sources:/app/data_sources
+      - ./ingestion:/app/ingestion
