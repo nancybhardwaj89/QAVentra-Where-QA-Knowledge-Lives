@@ -29,7 +29,7 @@ def ask_qaventra(question: str, filter: str = "all") -> dict:
     response = requests.post(
         f"{QAVENTRA_API_URL}/ask",
         json={"question": question, "filter": filter},
-        timeout=60
+        timeout=120
     )
     response.raise_for_status()
     return response.json()
