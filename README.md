@@ -127,7 +127,32 @@ A background scheduler runs every hour and:
 
 ---
 
-## Status
+## MCP Server — Use QAVentra from Claude
+
+QAVentra also runs as an [MCP](https://modelcontextprotocol.io) server, so it can be queried directly from Claude Desktop (or any MCP-compatible client) as a native tool — no browser tab needed.
+
+**Tools exposed:**
+- `ask_qaventra(question, filter)` — the main tool; returns a cited answer plus source list, same as the web UI
+- `qaventra_stats()` — returns how many artifacts are currently indexed
+
+**Run it:**
+```bash
+python mcpserver/server.py
+```
+This starts the MCP server on port `8001`, using `streamable-http` transport at the `/mcp` path. It wraps the existing FastAPI backend rather than duplicating any retrieval logic — the same fixes and improvements that apply to the web UI apply here automatically.
+
+**Add it as a connector in Claude Desktop:**
+1. Go to Settings → Connectors → Add custom connector
+2. Enter the server's HTTPS address (see note below) with `/mcp` appended
+3. Choose "None" for authentication (no auth layer is set up by default)
+
+> **Note:** Claude Desktop's connector setup requires an HTTPS address — a plain local `http://localhost` URL won't be accepted. For local testing, a tunnel like [ngrok](https://ngrok.com/) (`ngrok http 8001`) provides a temporary HTTPS URL. For team-wide, always-on access, this needs a real deployment with a stable domain and TLS certificate.
+
+**Tested and confirmed working:** asked Claude Desktop *"Use the QAVentra connector to check if there's a bug related to login"* — it correctly called `ask_qaventra` and returned the exact cited ticket, matching the web UI's answer.
+
+---
+
+
 
 **Built and working:**
 - ✅ Multi-source ingestion (test cases, code, JIRA, docs, meeting notes)
