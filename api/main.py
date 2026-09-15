@@ -620,6 +620,11 @@ def generate_answer(
                     float(score),
                     4
                 ),
+
+                # Exposed so external evaluation tooling (DeepEval)
+                # can score retrieval quality — it needs to see WHICH
+                # chunks were retrieved, not just the final answer.
+                "text": r.payload["text"],
             }
         )
 

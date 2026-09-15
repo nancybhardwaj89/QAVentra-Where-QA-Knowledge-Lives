@@ -1,0 +1,6 @@
+deepeval
+instructor
+openai
+pytest
+python-dotenv
+requests

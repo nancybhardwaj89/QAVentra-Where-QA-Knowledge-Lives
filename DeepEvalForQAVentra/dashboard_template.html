@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QAVentra — Evaluation Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #0F2A43;
+    --navy-deep: #081A2C;
+    --teal: #2A9D8F;
+    --teal-soft: #E4F3F1;
+    --amber: #E9A23B;
+    --amber-soft: #FDF3E3;
+    --red: #D64545;
+    --red-soft: #FBEAEA;
+    --purple: #7C6FE8;
+    --purple-soft: #EEECFB;
+    --blue: #4C86C6;
+    --blue-soft: #E8F0F9;
+    --paper: #F4F6F8;
+    --line: #DDE4EA;
+    --ink: #1A2733;
+    --ink-soft: #5C6B78;
+    --ink-faint: #93A0AB;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    font-size: 14px;
+  }
+
+  header {
+    background: linear-gradient(135deg, var(--navy) 0%, var(--navy-deep) 100%);
+    padding: 20px 28px;
+  }
+
+  .header-inner {
+    max-width: 1440px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+
+  .brand { display: flex; align-items: center; gap: 13px; }
+
+  .mark {
+    width: 38px; height: 38px;
+    border-radius: 9px;
+    background: var(--teal);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .mark svg { width: 21px; height: 21px; }
+
+  h1 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 1.28rem;
+    color: #fff;
+    margin: 0;
+    letter-spacing: -0.01em;
+  }
+
+  .brand-sub {
+    font-size: 0.78rem;
+    color: rgba(255,255,255,0.55);
+    margin-top: 2px;
+  }
+
+  .header-fields { display: flex; gap: 22px; flex-wrap: wrap; }
+
+  .field-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.45);
+    margin-bottom: 5px;
+  }
+
+  .field-value {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.78rem;
+    color: #fff;
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.13);
+    border-radius: 6px;
+    padding: 7px 12px;
+  }
+
+  .strip {
+    max-width: 1440px;
+    margin: 20px auto 0;
+    padding: 0 28px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+  }
+
+  .strip-card {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    padding: 13px 16px;
+  }
+
+  .strip-title {
+    display: flex; align-items: center; gap: 7px;
+    font-weight: 600;
+    font-size: 0.86rem;
+    color: var(--navy);
+    margin-bottom: 5px;
+  }
+
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--teal); flex-shrink: 0; }
+
+  .strip-detail {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.71rem;
+    color: var(--ink-soft);
+    line-height: 1.5;
+  }
+
+  .tally { display: flex; gap: 7px; align-items: center; }
+
+  .tally-box {
+    font-family: 'IBM Plex Mono', monospace;
+    font-weight: 600;
+    font-size: 0.95rem;
+    padding: 5px 13px;
+    border-radius: 6px;
+  }
+
+  .tally-box.pass { background: var(--teal-soft); color: var(--teal); }
+  .tally-box.fail { background: var(--red-soft); color: var(--red); }
+  .tally-box.err  { background: var(--paper); color: var(--ink-faint); border: 1px solid var(--line); }
+
+  .filters {
+    max-width: 1440px;
+    margin: 22px auto 0;
+    padding: 0 28px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .filters-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.72rem;
+    color: var(--ink-soft);
+    margin-right: 3px;
+  }
+
+  .pill {
+    font-size: 0.79rem;
+    font-weight: 500;
+    padding: 6px 15px;
+    border-radius: 16px;
+    border: 1px solid var(--line);
+    background: #fff;
+    color: var(--ink-soft);
+    cursor: pointer;
+    transition: all 0.14s ease;
+    user-select: none;
+  }
+
+  .pill:hover { border-color: var(--teal); color: var(--teal); }
+  .pill.active { background: var(--navy); border-color: var(--navy); color: #fff; }
+
+  main {
+    max-width: 1440px;
+    margin: 0 auto;
+    padding: 20px 28px 70px;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(295px, 1fr));
+    gap: 15px;
+  }
+
+  .card {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 16px 17px 14px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .tag {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.6rem;
+    font-weight: 500;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    padding: 3px 7px;
+    border-radius: 4px;
+  }
+
+  .tag.quality   { background: var(--teal-soft);   color: var(--teal); }
+  .tag.retrieval { background: var(--blue-soft);   color: var(--blue); }
+  .tag.safety    { background: var(--amber-soft);  color: #9A6A16; }
+  .tag.geval     { background: var(--purple-soft); color: var(--purple); }
+  .tag.other     { background: var(--paper);       color: var(--ink-soft); }
+
+  .threshold-note {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.68rem;
+    color: var(--ink-faint);
+    white-space: nowrap;
+  }
+
+  .card-name {
+    font-weight: 600;
+    font-size: 0.98rem;
+    color: var(--navy);
+    margin-bottom: 4px;
+  }
+
+  .card-desc {
+    font-size: 0.82rem;
+    color: var(--ink-soft);
+    line-height: 1.45;
+    margin-bottom: 13px;
+    min-height: 2.2em;
+  }
+
+  .score-block {
+    border-radius: 7px;
+    padding: 11px 13px;
+    margin-bottom: 11px;
+  }
+
+  .score-block.pass { background: #F2FAF8; }
+  .score-block.fail { background: #FDF4F4; }
+
+  .score-row { display: flex; align-items: center; gap: 11px; }
+
+  .verdict {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.63rem;
+    font-weight: 600;
+    letter-spacing: 0.07em;
+    padding: 3px 8px;
+    border-radius: 4px;
+  }
+
+  .verdict.pass { background: var(--teal); color: #fff; }
+  .verdict.fail { background: var(--red); color: #fff; }
+
+  .score-val {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 1.42rem;
+    font-weight: 600;
+    line-height: 1;
+  }
+
+  .score-val.pass { color: var(--teal); }
+  .score-val.fail { color: var(--red); }
+
+  .score-cmp {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--ink-faint);
+  }
+
+  .score-labels {
+    display: flex;
+    justify-content: space-between;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.58rem;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-top: 6px;
+  }
+
+  .track {
+    height: 4px;
+    background: rgba(0,0,0,0.07);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-top: 8px;
+  }
+
+  .track-fill { height: 100%; border-radius: 2px; }
+
+  .ideal {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.68rem;
+    font-style: italic;
+    color: var(--ink-faint);
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 9px;
+  }
+
+  .reason {
+    font-size: 0.81rem;
+    color: var(--ink-soft);
+    line-height: 1.5;
+    margin-bottom: 11px;
+    flex-grow: 1;
+  }
+
+  .stats {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.68rem;
+    color: var(--ink-faint);
+    line-height: 1.6;
+    padding-top: 9px;
+    border-top: 1px solid var(--line);
+    margin-bottom: 11px;
+  }
+
+  .btn {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 500;
+    padding: 8px 0;
+    border-radius: 6px;
+    border: 1px solid var(--line);
+    background: #fff;
+    color: var(--navy);
+    cursor: pointer;
+    width: 100%;
+    transition: all 0.14s ease;
+  }
+
+  .btn:hover { border-color: var(--navy); background: var(--navy); color: #fff; }
+
+  .overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(8,26,44,0.6);
+    z-index: 100;
+    padding: 36px 20px;
+    overflow-y: auto;
+  }
+
+  .overlay.open { display: block; }
+
+  .modal {
+    background: var(--paper);
+    border-radius: 12px;
+    max-width: 860px;
+    margin: 0 auto;
+    overflow: hidden;
+  }
+
+  .modal-head {
+    background: var(--navy);
+    padding: 19px 26px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .modal-head h2 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.14rem;
+    color: #fff;
+    margin: 0 0 3px;
+  }
+
+  .modal-head p {
+    font-size: 0.82rem;
+    color: rgba(255,255,255,0.6);
+    margin: 0;
+  }
+
+  .close {
+    background: rgba(255,255,255,0.12);
+    border: none;
+    color: #fff;
+    width: 29px; height: 29px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1.1rem;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+
+  .close:hover { background: rgba(255,255,255,0.22); }
+
+  .modal-body { padding: 22px 26px 26px; }
+
+  .case-block {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--teal);
+    border-radius: 8px;
+    padding: 17px 19px;
+    margin-bottom: 13px;
+  }
+
+  .case-block.fail { border-left-color: var(--red); }
+
+  .case-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 11px;
+  }
+
+  .case-id {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.73rem;
+    color: var(--ink-soft);
+    background: var(--paper);
+    padding: 3px 8px;
+    border-radius: 4px;
+  }
+
+  .field-block { margin-bottom: 12px; }
+
+  .field-name {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 5px;
+  }
+
+  .field-text {
+    font-size: 0.86rem;
+    line-height: 1.55;
+    color: var(--ink);
+    white-space: pre-wrap;
+  }
+
+  .field-text.muted { color: var(--ink-soft); }
+
+  .field-text.boxed {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 11px 13px;
+    max-height: 230px;
+    overflow-y: auto;
+  }
+
+  .purpose {
+    font-size: 0.82rem;
+    font-style: italic;
+    color: var(--ink-soft);
+    background: var(--amber-soft);
+    border-left: 3px solid var(--amber);
+    border-radius: 4px;
+    padding: 9px 13px;
+    margin-bottom: 13px;
+    line-height: 1.5;
+  }
+
+  .empty {
+    text-align: center;
+    padding: 70px 20px;
+    color: var(--ink-soft);
+    background: #fff;
+    border: 1px dashed var(--line);
+    border-radius: 10px;
+  }
+
+  .empty code {
+    font-family: 'IBM Plex Mono', monospace;
+    background: var(--paper);
+    padding: 2px 7px;
+    border-radius: 4px;
+    color: var(--navy);
+  }
+
+  @media (max-width: 720px) {
+    header { padding: 18px 18px; }
+    .header-inner { flex-direction: column; align-items: flex-start; }
+    .strip, .filters, main { padding-left: 18px; padding-right: 18px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="brand">
+      <div class="mark">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M4 13.5L9 18L20 6" stroke="#fff" stroke-width="2.6"
+                stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div>
+        <h1>QAVentra — Evaluation Dashboard</h1>
+        <div class="brand-sub" id="subtitle">RAG quality, safety and domain metrics, graded by an LLM judge</div>
+      </div>
+    </div>
+    <div class="header-fields" id="headerFields"></div>
+  </div>
+</header>
+
+<div class="strip" id="strip"></div>
+<div class="filters" id="filters"></div>
+
+<main>
+  <div class="grid" id="grid"></div>
+</main>
+
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <div class="modal-head">
+      <div>
+        <h2 id="modalTitle"></h2>
+        <p id="modalSub"></p>
+      </div>
+      <button class="close" onclick="closeModal()">&times;</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<script>
+const DATA = __DASHBOARD_DATA__;
+
+const CATEGORY_CLASS = {
+  "Quality": "quality",
+  "Retrieval": "retrieval",
+  "Safety": "safety",
+  "G-Eval": "geval",
+};
+
+const IDEAL_NOTES = {
+  "Answer Relevancy":        "1.00 = every sentence answers the question",
+  "Faithfulness":            "1.00 = every claim backed by the context",
+  "Contextual Precision":    "1.00 = relevant chunks ranked on top",
+  "Contextual Recall":       "1.00 = retrieval found everything needed",
+  "Contextual Relevancy":    "1.00 = no irrelevant chunks retrieved",
+  "Artifact Type Precision": "1.00 = answered the artifact type asked for",
+  "Citation Discipline":     "1.00 = every claim carries a valid citation",
+  "Honest Absence Handling": "1.00 = says 'not found' plainly, no hedging",
+  "QA Actionability":        "1.00 = names concrete IDs and paths",
+  "Scope Adherence":         "1.00 = nothing added beyond the knowledge base",
+  "Hallucination":           "1.00 = nothing contradicts ground truth",
+  "Toxicity":                "1.00 = no toxic or demeaning language",
+  "Bias":                    "1.00 = no bias detected in the reply",
+  "PII Leakage":             "1.00 = no personal data leaked",
+};
+
+let activeFilter = "All";
+
+function fmt(n) {
+  return (n === null || n === undefined || isNaN(n)) ? "—" : Number(n).toFixed(3);
+}
+
+function esc(str) {
+  const d = document.createElement("div");
+  d.textContent = str == null ? "" : String(str);
+  return d.innerHTML;
+}
+
+function renderHeader() {
+  const fields = [
+    { label: "Target", value: DATA.target_api || DATA.target || "—" },
+    { label: "Judge Model", value: (DATA.judge_model || "—").replace(/^NVIDIA NIM \((.*)\)$/, "$1") },
+  ];
+  document.getElementById("headerFields").innerHTML = fields.map(f => `
+    <div>
+      <div class="field-label">${esc(f.label)}</div>
+      <div class="field-value">${esc(f.value)}</div>
+    </div>
+  `).join("");
+
+  if (DATA.generated_at) {
+    document.getElementById("subtitle").textContent =
+      "Run completed " + new Date(DATA.generated_at).toLocaleString();
+  }
+}
+
+function renderStrip() {
+  const t = DATA.totals || {};
+  const metrics = DATA.metrics || [];
+
+  const totalJudgeMs = metrics.reduce((a, m) => a + (m.judge_latency_ms || 0), 0);
+  const cases = metrics.reduce((a, m) => a + (m.total || 0), 0);
+  const chunks = metrics.reduce((a, m) =>
+    a + (m.cases || []).reduce((b, c) => b + (c.context_chunks || 0), 0), 0);
+
+  document.getElementById("strip").innerHTML = `
+    <div class="strip-card">
+      <div class="strip-title"><span class="dot"></span>System under test</div>
+      <div class="strip-detail">${esc(DATA.target || "—")}<br>${esc(DATA.target_api || "")}</div>
+    </div>
+    <div class="strip-card">
+      <div class="strip-title"><span class="dot"></span>Judge</div>
+      <div class="strip-detail">${esc(DATA.judge_model || "—")}</div>
+    </div>
+    <div class="strip-card">
+      <div class="strip-title"><span class="dot"></span>Coverage</div>
+      <div class="strip-detail">${t.metrics || 0} metrics · ${cases} evaluations<br>${chunks} chunks retrieved</div>
+    </div>
+    <div class="strip-card">
+      <div class="strip-title"><span class="dot"></span>Judge time</div>
+      <div class="strip-detail">${(totalJudgeMs / 1000).toFixed(1)}s total</div>
+    </div>
+    <div class="strip-card">
+      <div class="strip-title">Result</div>
+      <div class="tally">
+        <span class="tally-box pass">${t.passed || 0}</span>
+        <span class="tally-box fail">${t.failed || 0}</span>
+        <span class="tally-box err">${t.errored || 0}</span>
+      </div>
+      <div class="strip-detail" style="margin-top:5px">pass · fail · error</div>
+    </div>
+  `;
+}
+
+function renderFilters() {
+  const cats = ["All", ...new Set((DATA.metrics || []).map(m => m.category).filter(Boolean))];
+  document.getElementById("filters").innerHTML =
+    `<span class="filters-label">Categories:</span>` +
+    cats.map(c => `<span class="pill ${c === activeFilter ? "active" : ""}" data-cat="${esc(c)}">${esc(c)}</span>`).join("");
+
+  document.querySelectorAll(".pill").forEach(p => {
+    p.addEventListener("click", () => {
+      activeFilter = p.dataset.cat;
+      renderFilters();
+      renderGrid();
+    });
+  });
+}
+
+function renderGrid() {
+  const grid = document.getElementById("grid");
+  let metrics = DATA.metrics || [];
+
+  if (!metrics.length) {
+    grid.innerHTML = `<div class="empty" style="grid-column:1/-1">
+      No results yet.<br><br>
+      Run <code>pytest</code> then <code>python build_dashboard.py</code>
+    </div>`;
+    return;
+  }
+
+  if (activeFilter !== "All") {
+    metrics = metrics.filter(m => m.category === activeFilter);
+  }
+
+  grid.innerHTML = metrics.map(m => {
+    const realIdx = (DATA.metrics || []).indexOf(m);
+    const pass = m.success;
+    const catClass = CATEGORY_CLASS[m.category] || "other";
+    const ideal = IDEAL_NOTES[m.name] || "";
+    const first = (m.cases || [])[0] || {};
+
+    // For inverted metrics the bar shows how far BELOW threshold we are
+    const barPct = m.inverted
+      ? Math.max(0, 100 - (m.score || 0) * 100)
+      : (m.score || 0) * 100;
+
+    const targetMs = (m.cases || []).reduce((a, c) => a + (c.target_latency_ms || 0), 0);
+    const chunks = (m.cases || []).reduce((a, c) => a + (c.context_chunks || 0), 0);
+    const reasonText = first.reason || "No reason recorded.";
+
+    return `
+      <div class="card">
+        <div class="card-top">
+          <span class="tag ${catClass}">${esc(m.category || "metric")}</span>
+          <span class="threshold-note">${m.inverted ? "&le;" : "&ge;"} ${fmt(m.threshold)}</span>
+        </div>
+
+        <div class="card-name">${esc(m.name)}</div>
+        <div class="card-desc">${esc(m.description || "")}</div>
+
+        <div class="score-block ${pass ? "pass" : "fail"}">
+          <div class="score-row">
+            <span class="verdict ${pass ? "pass" : "fail"}">${pass ? "PASS" : "FAIL"}</span>
+            <span class="score-val ${pass ? "pass" : "fail"}">${fmt(m.score)}</span>
+            <span class="score-cmp">${m.inverted ? "&le;" : "&ge;"} ${fmt(m.threshold)}</span>
+          </div>
+          <div class="score-labels"><span>score</span><span>threshold</span></div>
+          <div class="track">
+            <div class="track-fill" style="width:${barPct}%;background:${pass ? "var(--teal)" : "var(--red)"}"></div>
+          </div>
+        </div>
+
+        ${ideal ? `<div class="ideal">${esc(ideal)}</div>` : ""}
+
+        <div class="reason">${esc(reasonText.slice(0, 190))}${reasonText.length > 190 ? "…" : ""}</div>
+
+        <div class="stats">
+          ${m.passed}/${m.total} case${m.total === 1 ? "" : "s"} passed<br>
+          judge ${(m.judge_latency_ms / 1000).toFixed(1)}s · target ${(targetMs / 1000).toFixed(1)}s · ${chunks} chunks
+        </div>
+
+        <button class="btn" onclick="openModal(${realIdx})">Details</button>
+      </div>
+    `;
+  }).join("");
+}
+
+function openModal(idx) {
+  const m = (DATA.metrics || [])[idx];
+  if (!m) return;
+
+  document.getElementById("modalTitle").textContent = m.name;
+  document.getElementById("modalSub").textContent =
+    `${m.category || "metric"} · ${m.passed}/${m.total} passed · threshold ${fmt(m.threshold)}` +
+    (m.inverted ? " (lower is better)" : "");
+
+  document.getElementById("modalBody").innerHTML = (m.cases || []).map(c => `
+    <div class="case-block ${c.success ? "" : "fail"}">
+      <div class="case-head">
+        <span class="case-id">${esc(c.case_id || "case")}</span>
+        <div class="score-row">
+          <span class="verdict ${c.success ? "pass" : "fail"}">${c.success ? "PASS" : "FAIL"}</span>
+          <span class="score-val ${c.success ? "pass" : "fail"}" style="font-size:1.05rem">${fmt(c.score)}</span>
+        </div>
+      </div>
+
+      ${c.purpose ? `<div class="purpose">Why this case: ${esc(c.purpose)}</div>` : ""}
+
+      <div class="field-block">
+        <div class="field-name">Question</div>
+        <div class="field-text">${esc(c.question)}</div>
+      </div>
+
+      <div class="field-block">
+        <div class="field-name">Expected (ground truth)</div>
+        <div class="field-text muted">${esc(c.expected)}</div>
+      </div>
+
+      <div class="field-block">
+        <div class="field-name">Actual output</div>
+        <div class="field-text boxed">${esc(c.answer)}</div>
+      </div>
+
+      <div class="field-block">
+        <div class="field-name">Judge reasoning</div>
+        <div class="field-text muted">${esc(c.reason || "No reason recorded.")}</div>
+      </div>
+
+      <div class="stats" style="border-top:none;padding-top:0;margin-bottom:0">
+        ${c.context_chunks} chunks retrieved · target ${(c.target_latency_ms / 1000).toFixed(1)}s · judge ${(c.judge_latency_ms / 1000).toFixed(1)}s
+      </div>
+    </div>
+  `).join("");
+
+  document.getElementById("overlay").classList.add("open");
+  document.body.style.overflow = "hidden";
+}
+
+function closeModal() {
+  document.getElementById("overlay").classList.remove("open");
+  document.body.style.overflow = "";
+}
+
+document.getElementById("overlay").addEventListener("click", e => {
+  if (e.target.id === "overlay") closeModal();
+});
+
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape") closeModal();
+});
+
+renderHeader();
+renderStrip();
+renderFilters();
+renderGrid();
+</script>
+
+</body>
+</html>

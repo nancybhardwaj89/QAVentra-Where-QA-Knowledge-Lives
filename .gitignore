@@ -96,3 +96,5 @@ pnpm-debug.log*
 *.key
 credentials.json
 service-account.json
+
+DeepEvalForQAVentra/.env
